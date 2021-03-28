@@ -3,8 +3,8 @@
 export POSIXLY_CORRECT=yes
 export LC_ALL=C
 
-after_date="0000-00-00 00:00:00"
-before_date="9999-99-99 99:99:99"
+after_date="1970-01-01 00:00:00"
+before_date="2038-01-19 03:14:06"
 
 help_msg () {
     echo "Usage: tradelog [-h|--help] [FILTERS] [COMMAND] [LOG [LOG2 [...]]"
@@ -58,12 +58,10 @@ parseCmd () {
 #argument parsing
 while [ $# -ge 1 ]; do
     case "$1" in
-        -a)  shift; if [ "$(echo "" | awk -v date="$1" -v after="$after_date" '{if(date > after) printf("1")}')" = "1" ]; then
-                        after_date="$1"
-                    fi;; #< and > as string comparators are not POISX compliant, so I had to do this (it's terrible, sorry)
-        -b)  shift; if [ "$(echo "" | awk -v date="$1" -v before="$before_date" '{if(date < before) printf("1")}')" = "1" ]; then
-                        before_date="$1"
-                    fi;;
+        -a)  shift; if [ "$(date -d "$1" +"%s")" -gt "$(date -d "$after_date" +"%s")" ]; then
+                after_date="$1"; fi;;
+        -b)  shift; if [ "$(date -d "$1" +"%s")" -lt "$(date -d "$before_date" +"%s")" ]; then
+                before_date="$1"; fi;;
         -t)  shift; tickers="$tickers;$1";;
         -w)  shift; parseWidth "$1"; width="$1";;
         -h | --help) help_msg;;
@@ -101,7 +99,7 @@ else
     out=$(cat)
 fi
 
-#filter dates
+#filter datesS
 out=$(echo "$out" | awk -F ';' -v after="$after_date" -v before="$before_date" '{if ($1 > after && $1 < before) print}') 
 
 #filter tickers
