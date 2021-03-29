@@ -86,9 +86,11 @@ if [ -n "$files" ]; then
     for i in $files; do
         if [ -e "$i" ]; then
             if [ "$(printf '%s' "$i" | tail -c 3)" = ".gz" ]; then
-                out="$out$(zcat "$i")"
+                out="$out$(zcat "$i")
+"
             else
-                out="$out$(cat "$i")"
+                out="$out$(cat "$i")
+"
             fi
         else
             echo "ERROR: File $i not found!" 1>&2
