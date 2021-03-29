@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# tradelog
+# author: Martin Zmitko, xzmitk01
+# 1st IOS project, a shell utility for processing trading logs
+
 export POSIXLY_CORRECT=yes
 export LC_ALL=C
 
