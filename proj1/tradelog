@@ -4,11 +4,11 @@
 # author: Martin Zmitko, xzmitk01
 # 1st IOS project, a shell utility for processing trading logs
 
-POSIXLY_CORRECT=yes
-LC_ALL=C
+export POSIXLY_CORRECT=yes
+export LC_ALL=C
 
-after_date="1970-01-01 00:00:00"
-before_date="2038-01-19 03:14:06"
+after_date="0000-00-00 00:00:00"
+before_date="9999-99-99 99:99:99"
 
 help_msg () {
     echo "Usage: tradelog [-h|--help] [FILTERS] [COMMAND] [LOG [LOG2 [...]]"
@@ -62,10 +62,8 @@ parseCmd () {
 #argument parsing
 while [ $# -ge 1 ]; do
     case "$1" in
-        -a)  shift; if [ "$(date -d "$1" +"%s")" -gt "$(date -d "$after_date" +"%s")" ]; then
-                after_date="$1"; fi;;
-        -b)  shift; if [ "$(date -d "$1" +"%s")" -lt "$(date -d "$before_date" +"%s")" ]; then
-                before_date="$1"; fi;;
+        -a)  shift; expr "$after_date" \< "$1" >/dev/null && after_date="$1";;
+        -b)  shift; expr "$before_date" \> "$1" >/dev/null && before_date="$1";;
         -t)  shift; tickers="$tickers;$1";;
         -w)  shift; parseWidth "$1"; width="$1";;
         -h | --help) help_msg;;
