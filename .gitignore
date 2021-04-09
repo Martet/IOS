@@ -1,1 +1,5 @@
-.vscode\
+.vscode/
+proj2/*
+!*.c
+!*.h
+!Makefile
