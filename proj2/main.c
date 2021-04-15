@@ -34,11 +34,11 @@ int main(int argc, char* argv[]){
         return 1;
     }
     
-    sem_t mutex;
-    sem_init(&mutex, 1, 1);
+    sem_t *mutex = malloc(sizeof(sem_t));
+    sem_init(mutex, 1, 1);
     sharedRes_t *shared = mmap(NULL, sizeof(sharedRes_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     shared->count = 1;
-    shared->mutex = &mutex;
+    shared->mutex = mutex;
 
     pid_t id = fork();
     if(id < 0){

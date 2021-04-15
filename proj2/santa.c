@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <unistd.h>
 #include "res.h"
 
 int santa(sharedRes_t *shared){
