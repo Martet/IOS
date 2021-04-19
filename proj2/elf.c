@@ -6,16 +6,18 @@
 #include "res.h"
 
 int elf(sharedRes_t *shared, int id, int ET){
-    sem_wait(shared->mutex);
+    sem_wait(&shared->mutex);
     printf("%d: Elf %d: started\n", shared->count, id);
     shared->count++;
-    sem_post(shared->mutex);
+    sem_post(&shared->mutex);
 
     nanosleep(&(struct timespec){.tv_nsec = (rand() % (ET + 1)) * 1000000}, NULL);
 
-    sem_wait(shared->mutex);
+    sem_wait(&shared->mutex);
     printf("%d: Elf %d: taking holidays\n", shared->count, id);
     shared->count++;
-    sem_post(shared->mutex);
+    sem_post(&shared->mutex);
+
+    sem_post(&shared->main_wait);
     exit(0);
 }

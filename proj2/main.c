@@ -34,18 +34,18 @@ int main(int argc, char* argv[]){
         return 1;
     }
     
-    sem_t *mutex = malloc(sizeof(sem_t));
-    sem_init(mutex, 1, 1);
+    
     sharedRes_t *shared = mmap(NULL, sizeof(sharedRes_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     shared->count = 1;
-    shared->mutex = mutex;
+    sem_init(&shared->mutex, 1, 1);
+    sem_init(&shared->main_wait, 1, 0);
 
     pid_t id = fork();
     if(id < 0){
         fprintf(stderr, "Forking error\n");
         return 1;
     } 
-    else if(id > 0){
+    else if(id == 0){
         santa(shared);
     }
     else{
@@ -55,8 +55,10 @@ int main(int argc, char* argv[]){
                 fprintf(stderr, "Forking error\n");
                 return 1;
             }
-            else if(pid > 0)
+            else if(pid == 0){
                 elf(shared, i, TE);
+            }
+                
         }
         for(int i = 1; i <= NR; i++){
             pid_t pid = fork();
@@ -64,13 +66,18 @@ int main(int argc, char* argv[]){
                 fprintf(stderr, "Forking error\n");
                 return 1;
             }
-            else if(pid > 0)
+            else if(pid == 0){
                 reindeer(shared, i, TR);
+            }
         }
     }
 
-    sem_destroy(shared->mutex);
-    
+    for(int i = 0; i < 1 + NE + NR; i++)
+        sem_wait(&shared->main_wait);
+    printf("%d: Kak\n", shared->count++);
+    sem_destroy(&shared->mutex);
+    sem_destroy(&shared->main_wait);
+    munmap(shared, sizeof(sharedRes_t));
 
     return 0;
 }

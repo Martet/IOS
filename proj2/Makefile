@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -g
-LDFLAGS=-pthread -lrt
+LDFLAGS=-pthread
 
 all: proj2
 

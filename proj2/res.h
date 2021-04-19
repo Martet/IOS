@@ -4,7 +4,8 @@
 #define _RES_DEF
 
 typedef struct sharedRes{
-    sem_t *mutex;
+    sem_t mutex;
+    sem_t main_wait;
     unsigned count;
 } sharedRes_t;
 
