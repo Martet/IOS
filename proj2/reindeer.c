@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <semaphore.h>
 #include <time.h>
 #include "res.h"
 
 int reindeer(sharedRes_t *shared, int id, int RT){
+    srand(time(NULL) + id + 1234);
+
     sem_wait(&shared->mutex);
-    printf("%d: RD %d: rstarted\n", shared->count, id);
-    shared->count++;
+    print_log(shared, "%d: RD %d: rstarted\n", shared->count++, id);
     sem_post(&shared->mutex);
 
-    nanosleep(&(struct timespec){.tv_nsec = ((rand() % (RT / 2 + 1)) + RT / 2)  * 1000 * 1000}, NULL);
+    usleep(((rand() % (RT / 2 + 1)) + RT / 2)  * 1000);
 
     sem_wait(&shared->mutex);
-    printf("%d: RD %d: return home\n", shared->count, id);
-    shared->count++;
+    print_log(shared, "%d: RD %d: return home\n", shared->count++, id);
     sem_post(&shared->mutex);
 
     sem_post(&shared->main_wait);

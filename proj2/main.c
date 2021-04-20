@@ -9,8 +9,6 @@
 #include "reindeer.h"
 #include "res.h"
 
-enum procType {MAIN, SANTA, REIND, ELF};
-
 //parses string in arg as number between min and max (included), returns the number, -1 on error
 int parseArg(char *arg, unsigned int min, unsigned int max){
     char *endPtr;
@@ -36,9 +34,24 @@ int main(int argc, char* argv[]){
     
     
     sharedRes_t *shared = mmap(NULL, sizeof(sharedRes_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if(shared == MAP_FAILED){
+        fprintf(stderr, "Failed to map shared memory\n");
+        return 1;
+    }
+
+    shared->file = fopen("proj2.out", "w");
+    if(shared->file == NULL){
+        fprintf(stderr, "Error opening file\n");
+        munmap(shared, sizeof(sharedRes_t));
+        return 1;
+    }
+    
     shared->count = 1;
+    shared->reindeers = 0;
+    shared->elves = 0;
     sem_init(&shared->mutex, 1, 1);
     sem_init(&shared->main_wait, 1, 0);
+    sem_init(&shared->santa_sem, 1, 0);
 
     pid_t id = fork();
     if(id < 0){
@@ -75,8 +88,11 @@ int main(int argc, char* argv[]){
     for(int i = 0; i < 1 + NE + NR; i++)
         sem_wait(&shared->main_wait);
     printf("%d: Kak\n", shared->count++);
+
+    fclose(shared->file);
     sem_destroy(&shared->mutex);
     sem_destroy(&shared->main_wait);
+    sem_destroy(&shared->santa_sem);
     munmap(shared, sizeof(sharedRes_t));
 
     return 0;

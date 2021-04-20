@@ -6,8 +6,7 @@
 
 int santa(sharedRes_t *shared){
     sem_wait(&shared->mutex);
-    printf("%d: Santa: going to sleep\n", shared->count);
-    shared->count++;
+    print_log(shared, "%d: Santa: going to sleep\n", shared->count++);
     sem_post(&shared->mutex);
 
     sem_post(&shared->main_wait);
