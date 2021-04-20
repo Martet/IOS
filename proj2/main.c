@@ -49,9 +49,13 @@ int main(int argc, char* argv[]){
     shared->count = 1;
     shared->reindeers = 0;
     shared->elves = 0;
+    shared->shop_closed = 0;
+    shared->NR = NR;
     sem_init(&shared->mutex, 1, 1);
     sem_init(&shared->main_wait, 1, 0);
     sem_init(&shared->santa_sem, 1, 0);
+    sem_init(&shared->reind_sem, 1, 0);
+    sem_init(&shared->elf_sem, 1, 0);
 
     pid_t id = fork();
     if(id < 0){

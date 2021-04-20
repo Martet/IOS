@@ -16,8 +16,19 @@ int reindeer(sharedRes_t *shared, int id, int RT){
 
     sem_wait(&shared->mutex);
     print_log(shared, "%d: RD %d: return home\n", shared->count++, id);
+    shared->reindeers++;
+    if(shared->reindeers == shared->NR){
+        sem_post(&shared->santa_sem);
+    }
     sem_post(&shared->mutex);
 
+    sem_wait(&shared->reind_sem);
+
+    sem_wait(&shared->mutex);
+    print_log(shared, "%d: RD %d: get hitched\n", shared->count++, id);
+    sem_post(&shared->mutex);
+
+    sem_post(&shared->reind_sem);
     sem_post(&shared->main_wait);
     exit(0);
 }
