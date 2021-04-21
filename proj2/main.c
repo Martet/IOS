@@ -4,9 +4,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <sys/mman.h>
-#include "santa.h"
-#include "elf.h"
-#include "reindeer.h"
+#include "proc.h"
 #include "res.h"
 
 //parses string in arg as number between min and max (included), returns the number, -1 on error
@@ -63,7 +61,7 @@ int main(int argc, char* argv[]){
         return 1;
     } 
     else if(id == 0){
-        santa(shared);
+        return santa(shared);
     }
     else{
         for(int i = 1; i <= NE; i++){
@@ -73,7 +71,7 @@ int main(int argc, char* argv[]){
                 return 1;
             }
             else if(pid == 0){
-                elf(shared, i, TE);
+                return elf(shared, i, TE);
             }
                 
         }
@@ -84,7 +82,7 @@ int main(int argc, char* argv[]){
                 return 1;
             }
             else if(pid == 0){
-                reindeer(shared, i, TR);
+                return reindeer(shared, i, TR);
             }
         }
     }
