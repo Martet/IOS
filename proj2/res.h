@@ -1,9 +1,9 @@
+#ifndef _RES_DEF
+#define _RES_DEF
+
 #include <semaphore.h>
 #include <stdarg.h>
 #include <stdio.h>
-
-#ifndef _RES_DEF
-#define _RES_DEF
 
 typedef struct sharedRes{
     FILE *file;
@@ -12,10 +12,11 @@ typedef struct sharedRes{
     sem_t santa_sem;
     sem_t reind_sem;
     sem_t elf_sem;
+    sem_t elfHelp_sem;
+    sem_t reindHitch_sem;
     unsigned count;
     int reindeers;
     int elves;
-    int NR;
     char shop_closed;
 } sharedRes_t;
 

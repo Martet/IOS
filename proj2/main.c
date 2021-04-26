@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +8,18 @@
 #include <sys/mman.h>
 #include "proc.h"
 #include "res.h"
+
+//free everything
+void freeRes(sharedRes_t *shared){
+    fclose(shared->file);
+    sem_destroy(&shared->mutex);
+    sem_destroy(&shared->main_wait);
+    sem_destroy(&shared->santa_sem);
+    sem_destroy(&shared->reind_sem);
+    sem_destroy(&shared->elf_sem);
+    sem_destroy(&shared->elfHelp_sem);
+    munmap(shared, sizeof(sharedRes_t));
+}
 
 //parses string in arg as number between min and max (included), returns the number, -1 on error
 int parseArg(char *arg, unsigned int min, unsigned int max){
@@ -48,26 +62,29 @@ int main(int argc, char* argv[]){
     shared->reindeers = 0;
     shared->elves = 0;
     shared->shop_closed = 0;
-    shared->NR = NR;
     sem_init(&shared->mutex, 1, 1);
     sem_init(&shared->main_wait, 1, 0);
     sem_init(&shared->santa_sem, 1, 0);
     sem_init(&shared->reind_sem, 1, 0);
-    sem_init(&shared->elf_sem, 1, 0);
+    sem_init(&shared->elf_sem, 1, 1);
+    sem_init(&shared->elfHelp_sem, 1, 0);
+    sem_init(&shared->reindHitch_sem, 1, 0);
 
     pid_t id = fork();
     if(id < 0){
         fprintf(stderr, "Forking error\n");
+        freeRes(shared);
         return 1;
     } 
     else if(id == 0){
-        return santa(shared);
+        return santa(shared, NR, NE);
     }
     else{
         for(int i = 1; i <= NE; i++){
             pid_t pid = fork();
             if(pid < 0){
                 fprintf(stderr, "Forking error\n");
+                freeRes(shared);
                 return 1;
             }
             else if(pid == 0){
@@ -79,23 +96,18 @@ int main(int argc, char* argv[]){
             pid_t pid = fork();
             if(pid < 0){
                 fprintf(stderr, "Forking error\n");
+                freeRes(shared);
                 return 1;
             }
             else if(pid == 0){
-                return reindeer(shared, i, TR);
+                return reindeer(shared, i, NR, TR);
             }
         }
     }
 
     for(int i = 0; i < 1 + NE + NR; i++)
         sem_wait(&shared->main_wait);
-    printf("%d: Kak\n", shared->count++);
-
-    fclose(shared->file);
-    sem_destroy(&shared->mutex);
-    sem_destroy(&shared->main_wait);
-    sem_destroy(&shared->santa_sem);
-    munmap(shared, sizeof(sharedRes_t));
-
+    
+    freeRes(shared);
     return 0;
 }
