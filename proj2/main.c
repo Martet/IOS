@@ -1,3 +1,9 @@
+/*
+ * Author: Martin Zmitko (xzmitk01)
+ * Date: 26-04-2021
+ * Description: Second IOS project, process synchronization using unix semaphores
+*/
+
 #define _GNU_SOURCE
 
 #include <stdio.h>
@@ -33,7 +39,7 @@ int parseArg(char *arg, unsigned int min, unsigned int max){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 5){
+    if(argc != 5){ //must have 4 arguments
         fprintf(stderr, "Argument parsing error\n");
         return 1;
     }
@@ -41,18 +47,19 @@ int main(int argc, char* argv[]){
     int NR = parseArg(argv[2], 1, 19);
     int TE = parseArg(argv[3], 0, 1000);
     int TR = parseArg(argv[4], 0, 1000);
-    if(NE == -1 || NR == -1 || TE == -1 || TR == -1){
+    if(NE == -1 || NR == -1 || TE == -1 || TR == -1){   //all arguments must be in correct range
         fprintf(stderr, "Argument parsing error\n");
         return 1;
     }
     
-    
+    //map shared memory
     sharedRes_t *shared = mmap(NULL, sizeof(sharedRes_t), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if(shared == MAP_FAILED){
         fprintf(stderr, "Failed to map shared memory\n");
         return 1;
     }
 
+    //open output file
     shared->file = fopen("proj2.out", "w");
     if(shared->file == NULL){
         fprintf(stderr, "Error opening file\n");
@@ -60,6 +67,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
     
+    //initialize shared variables and semaphores
     shared->count = 1;
     shared->reindeers = 0;
     shared->elves = 0;
@@ -73,6 +81,7 @@ int main(int argc, char* argv[]){
     sem_init(&shared->elfDone_sem, 1, 0);
     sem_init(&shared->reindHitch_sem, 1, 0);
 
+    //fork santa
     pid_t id = fork();
     if(id < 0){
         fprintf(stderr, "Forking error\n");
@@ -80,37 +89,38 @@ int main(int argc, char* argv[]){
         return 1;
     } 
     else if(id == 0){
-        return santa(shared, NR, NE);
+        return santa(shared, NR, NE); //run santa
     }
     else{
         for(int i = 1; i <= NE; i++){
-            pid_t pid = fork();
-            if(pid < 0){
+            pid_t pid = fork(); //fork elves
+            if(pid < 0){ //check if forked correctly
                 fprintf(stderr, "Forking error\n");
                 freeRes(shared);
                 return 1;
             }
             else if(pid == 0){
-                return elf(shared, i, TE);
+                return elf(shared, i, TE); //run elf
             }
                 
         }
         for(int i = 1; i <= NR; i++){
-            pid_t pid = fork();
-            if(pid < 0){
+            pid_t pid = fork(); //fork reindeers
+            if(pid < 0){ //check if forked correctly
                 fprintf(stderr, "Forking error\n");
                 freeRes(shared);
                 return 1;
             }
             else if(pid == 0){
-                return reindeer(shared, i, NR, TR);
+                return reindeer(shared, i, NR, TR); //run reindeer
             }
         }
     }
 
+    //wait for all proccesses to finish
     for(int i = 0; i < 1 + NE + NR; i++)
         sem_wait(&shared->main_wait);
     
-    freeRes(shared);
+    freeRes(shared); //free everything and exit main process
     return 0;
 }

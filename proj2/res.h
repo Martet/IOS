@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+//shared structure
 typedef struct sharedRes{
     FILE *file;
     sem_t mutex;
@@ -21,6 +22,7 @@ typedef struct sharedRes{
     char shop_closed;
 } sharedRes_t;
 
+//prints formatted string to file in shared structure
 void print_log(sharedRes_t *shared, const char* fmt, ...);
 
 #endif
