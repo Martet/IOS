@@ -1,10 +1,11 @@
 CC=gcc
-CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic -g
+CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic
 LDFLAGS=-pthread
+TARGETS=main.o proc.o res.o
 
 all: proj2
 
-proj2: main.o proc.o res.o
+proj2: $(TARGETS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:

@@ -37,6 +37,7 @@ int elf(sharedRes_t *shared, int id, int ET){
         print_log(shared, "%d: Elf %d: get help\n", shared->count++, id);
         shared->elves--;
         if(shared->elves == 0){
+            sem_post(&shared->elfDone_sem);
             sem_post(&shared->elf_sem);
         }
         sem_post(&shared->mutex);
@@ -94,6 +95,11 @@ int santa(sharedRes_t *shared, int NR, int NE){
 
             for(int i = 0; i < 3; i++)
                 sem_post(&shared->elfHelp_sem);
+
+            sem_wait(&shared->elfDone_sem);
+            sem_wait(&shared->mutex);
+            print_log(shared, "%d: Santa: going to sleep\n", shared->count++);
+            sem_post(&shared->mutex);
         }
     }
     sem_wait(&shared->mutex);

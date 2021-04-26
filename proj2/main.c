@@ -18,6 +18,8 @@ void freeRes(sharedRes_t *shared){
     sem_destroy(&shared->reind_sem);
     sem_destroy(&shared->elf_sem);
     sem_destroy(&shared->elfHelp_sem);
+    sem_destroy(&shared->elfDone_sem);
+    sem_destroy(&shared->reindHitch_sem);
     munmap(shared, sizeof(sharedRes_t));
 }
 
@@ -68,6 +70,7 @@ int main(int argc, char* argv[]){
     sem_init(&shared->reind_sem, 1, 0);
     sem_init(&shared->elf_sem, 1, 1);
     sem_init(&shared->elfHelp_sem, 1, 0);
+    sem_init(&shared->elfDone_sem, 1, 0);
     sem_init(&shared->reindHitch_sem, 1, 0);
 
     pid_t id = fork();
