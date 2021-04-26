@@ -12,6 +12,6 @@ clean:
 	rm -f *.o proj2
 
 zip:
-	zip xzmitk01.zip *.c *.h Makefile
+	zip proj2.zip *.c *.h Makefile
 
 .PHONY: all clean zip
