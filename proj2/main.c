@@ -108,38 +108,39 @@ int main(int argc, char* argv[]){
         return 1;
     } 
     else if(pid_arr[arr_pos - 1] == 0){
+        free(pid_arr);
         return santa(shared, NR, NE); //run santa
     }
-    else{
-        for(int i = 1; i <= NE; i++){
-            pid_arr[arr_pos] = fork(); //fork elves
-            if(pid_arr[arr_pos] < 0){ //check if forked correctly
-                fprintf(stderr, "Forking error\n");
-                killAll(pid_arr, arr_pos);
-                freeRes(shared);
-                return 1;
-            }
-            else if(pid_arr[arr_pos] == 0){
-                free(pid_arr);
-                return elf(shared, i, TE); //run elf
-            }
-            arr_pos++;
+    
+    for(int i = 1; i <= NE; i++){
+        pid_arr[arr_pos] = fork(); //fork elves
+        if(pid_arr[arr_pos] < 0){ //check if forked correctly
+            fprintf(stderr, "Forking error\n");
+            killAll(pid_arr, arr_pos);
+            freeRes(shared);
+            return 1;
         }
-        for(int i = 1; i <= NR; i++){
-            pid_arr[arr_pos] = fork(); //fork reindeers
-            if(pid_arr[arr_pos] < 0){ //check if forked correctly
-                fprintf(stderr, "Forking error\n");
-                killAll(pid_arr, arr_pos);
-                freeRes(shared);
-                return 1;
-            }
-            else if(pid_arr[arr_pos] == 0){
-                free(pid_arr);
-                return reindeer(shared, i, NR, TR); //run reindeer
-            }
-            arr_pos++;
+        else if(pid_arr[arr_pos] == 0){
+            free(pid_arr);
+            return elf(shared, i, TE); //run elf
         }
+        arr_pos++;
     }
+    for(int i = 1; i <= NR; i++){
+        pid_arr[arr_pos] = fork(); //fork reindeers
+        if(pid_arr[arr_pos] < 0){ //check if forked correctly
+            fprintf(stderr, "Forking error\n");
+            killAll(pid_arr, arr_pos);
+            freeRes(shared);
+            return 1;
+        }
+        else if(pid_arr[arr_pos] == 0){
+            free(pid_arr);
+            return reindeer(shared, i, NR, TR); //run reindeer
+        }
+        arr_pos++;
+    }
+    
     
     //wait for all proccesses to finish
     for(int i = 0; i < 1 + NE + NR; i++)
