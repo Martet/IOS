@@ -20,7 +20,7 @@
 pid_t *pid_arr; //global array of processes for signal handler
 unsigned int arr_pos;
 sharedRes_t *shared; //global shared memory
-int NE, TE; //handler also needs number and wait time of elves
+int NE, TE, total_elves; //handler also needs number and wait time of elves
 
 //free everything
 void freeRes(){
@@ -66,7 +66,9 @@ void usr_handler(int sig){
     }
     pid_arr = new_pid_arr;
 
-    for(int i = 1; i <= new_NE; i++){
+    int i = total_elves + 1;
+    total_elves += new_NE;
+    while(i <= total_elves){
         pid_arr[arr_pos] = fork(); //fork elves
         if(pid_arr[arr_pos] < 0){ //check if forked correctly
             fprintf(stderr, "Forking error\n");
@@ -80,6 +82,7 @@ void usr_handler(int sig){
             exit(0);
         }
         arr_pos++;
+        i++;
     }
 }
 
@@ -196,10 +199,12 @@ int main(int argc, char* argv[]){
         arr_pos++;
     }
     
+    total_elves = NE;
     if(flag){ //if flag is set, handle SIGUSR1 and wait for signal from santa
         srand(time(NULL) + 666);
         signal(SIGUSR1, usr_handler);
         sem_wait(&shared->santaDone_sem);
+        signal(SIGUSR1, SIG_DFL);
     }
     
     //wait for all proccesses to finish
