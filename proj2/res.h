@@ -1,13 +1,11 @@
-#ifndef _RES_DEF
-#define _RES_DEF
+#ifndef __RES_H__
+#define __RES_H__
 
 #include <semaphore.h>
-#include <stdarg.h>
 #include <stdio.h>
 
 //shared structure
 typedef struct sharedRes{
-    FILE *file;
     sem_t mutex;
     sem_t main_wait;
     sem_t santa_sem;
@@ -16,13 +14,17 @@ typedef struct sharedRes{
     sem_t elfHelp_sem;
     sem_t reindHitch_sem;
     sem_t elfDone_sem;
-    unsigned count;
+    FILE *file;
+    unsigned int count;
     int reindeers;
     int elves;
     char shop_closed;
 } sharedRes_t;
 
 //prints formatted string to file in shared structure
-void print_log(sharedRes_t *shared, const char* fmt, ...);
+#define print_log(...) do{                  \
+    fprintf(shared->file, __VA_ARGS__);    \
+    fflush(shared->file);                   \
+} while(0)
 
 #endif

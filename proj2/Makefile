@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic
 LDFLAGS=-pthread
-TARGETS=main.o proc.o res.o
+TARGETS=main.o proc.o
 
 all: proj2
 
