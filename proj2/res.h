@@ -22,9 +22,9 @@ typedef struct sharedRes{
 } sharedRes_t;
 
 //prints formatted string to file in shared structure
-#define print_log(...) do{                  \
-    fprintf(shared->file, __VA_ARGS__);    \
-    fflush(shared->file);                   \
-} while(0)
+#define print_log(...) do{              \
+    fprintf(shared->file, __VA_ARGS__);  \
+    fflush(shared->file);                 \
+}while(0)
 
 #endif
