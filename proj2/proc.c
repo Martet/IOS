@@ -21,6 +21,9 @@ int elf(sharedRes_t *shared, const int id, const int ET){
 
         sem_wait(&shared->elf_sem); //wait to be only elf
 
+        if(shared->shop_closed) //check if workshop isnt closed, else leave loop
+            break;
+
         sem_wait(&shared->mutex);
         shared->elves++;
         if(shared->elves == 3) //if third elf in line, wake up Santa
@@ -48,6 +51,8 @@ int elf(sharedRes_t *shared, const int id, const int ET){
     print_log("%d: Elf %d: taking holidays\n", shared->count++, id);
     sem_post(&shared->mutex);
 
+    sem_post(&shared->elf_sem);
+    sem_post(&shared->elfHelp_sem);
     sem_post(&shared->main_wait);
     return 0;
 }
@@ -80,7 +85,7 @@ int reindeer(sharedRes_t *shared, const int id, const int NR, const int RT){
     return 0;
 }
 
-int santa(sharedRes_t *shared, const int NR, const int NE){
+int santa(sharedRes_t *shared, const int NR){
     sem_wait(&shared->mutex);
     print_log("%d: Santa: going to sleep\n", shared->count++);
     sem_post(&shared->mutex);
@@ -109,10 +114,8 @@ int santa(sharedRes_t *shared, const int NR, const int NE){
     shared->shop_closed = 1; //close workshop
     sem_post(&shared->mutex);
 
-    for(int i = 0; i < NE; i++){ //release all elves waiting
-        sem_post(&shared->elfHelp_sem);
-        sem_post(&shared->elf_sem);
-    }
+    sem_post(&shared->elf_sem);
+    sem_post(&shared->elfHelp_sem);
 
     for(int i = 0; i < NR; i++){ //let all reindeers know to get hitched
         sem_post(&shared->reindHitch_sem);
