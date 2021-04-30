@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <sys/mman.h>
+#include <signal.h>
 #include "proc.h"
 #include "res.h"
 
@@ -29,8 +30,16 @@ void freeRes(sharedRes_t *shared){
     munmap(shared, sizeof(sharedRes_t));
 }
 
+//kill all forked processes
+void killAll(pid_t *pid_arr, const unsigned int arr_pos){
+    for(unsigned int i = 0; i < arr_pos; i++)
+        kill(pid_arr[i], SIGKILL);
+
+    free(pid_arr);
+}
+
 //parses string in arg as number between min and max (included), returns the number, -1 on error
-int parseArg(char *arg, unsigned int min, unsigned int max){
+int parseArg(char *arg, const unsigned int min, const unsigned int max){
     char *endPtr;
     long out = strtol(arg, &endPtr, 10);
     if(strcmp(endPtr, "") || out < min || out > max)
@@ -81,46 +90,62 @@ int main(int argc, char* argv[]){
     sem_init(&shared->elfDone_sem, 1, 0);
     sem_init(&shared->reindHitch_sem, 1, 0);
 
+    //initialize pid array
+    unsigned int arr_pos = 0;
+    pid_t *pid_arr = malloc(sizeof(pid_t) * (1 + NE + NR));
+    if(pid_arr == NULL){
+        fprintf(stderr, "Memory allocation error\n");
+        freeRes(shared);
+        return 1;
+    }
+ 
     //fork santa
-    pid_t id = fork();
-    if(id < 0){
+    pid_arr[arr_pos++] = fork();
+    if(pid_arr[arr_pos - 1] < 0){
         fprintf(stderr, "Forking error\n");
+        free(pid_arr);
         freeRes(shared);
         return 1;
     } 
-    else if(id == 0){
+    else if(pid_arr[arr_pos - 1] == 0){
         return santa(shared, NR, NE); //run santa
     }
     else{
         for(int i = 1; i <= NE; i++){
-            pid_t pid = fork(); //fork elves
-            if(pid < 0){ //check if forked correctly
+            pid_arr[arr_pos] = fork(); //fork elves
+            if(pid_arr[arr_pos] < 0){ //check if forked correctly
                 fprintf(stderr, "Forking error\n");
+                killAll(pid_arr, arr_pos);
                 freeRes(shared);
                 return 1;
             }
-            else if(pid == 0){
+            else if(pid_arr[arr_pos] == 0){
+                free(pid_arr);
                 return elf(shared, i, TE); //run elf
             }
-                
+            arr_pos++;
         }
         for(int i = 1; i <= NR; i++){
-            pid_t pid = fork(); //fork reindeers
-            if(pid < 0){ //check if forked correctly
+            pid_arr[arr_pos] = fork(); //fork reindeers
+            if(pid_arr[arr_pos] < 0){ //check if forked correctly
                 fprintf(stderr, "Forking error\n");
+                killAll(pid_arr, arr_pos);
                 freeRes(shared);
                 return 1;
             }
-            else if(pid == 0){
+            else if(pid_arr[arr_pos] == 0){
+                free(pid_arr);
                 return reindeer(shared, i, NR, TR); //run reindeer
             }
+            arr_pos++;
         }
     }
-
+    
     //wait for all proccesses to finish
     for(int i = 0; i < 1 + NE + NR; i++)
         sem_wait(&shared->main_wait);
     
+    free(pid_arr);
     freeRes(shared); //free everything and exit main process
     return 0;
 }
