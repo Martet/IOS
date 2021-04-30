@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <sys/mman.h>
+#include <signal.h>
 #include "proc.h"
 #include "res.h"
 
@@ -39,14 +40,21 @@ int parseArg(char *arg, unsigned int min, unsigned int max){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 5){ //must have 4 arguments
+    if(argc != 5 && argc != 6){ //must have 4 or 5 arguments
         fprintf(stderr, "Argument parsing error\n");
         return 1;
     }
-    int NE = parseArg(argv[1], 1, 999);
-    int NR = parseArg(argv[2], 1, 19);
-    int TE = parseArg(argv[3], 0, 1000);
-    int TR = parseArg(argv[4], 0, 1000);
+
+    char flag = strcmp(argv[1], "-b") ? 0 : 1;
+    if(flag && argc != 6){
+        fprintf(stderr, "Argument parsing error\n");
+        return 1;
+    }
+
+    int NE = parseArg(argv[1 + flag], 1, 999);
+    int NR = parseArg(argv[2 + flag], 1, 19);
+    int TE = parseArg(argv[3 + flag], 0, 1000);
+    int TR = parseArg(argv[4 + flag], 0, 1000);
     if(NE == -1 || NR == -1 || TE == -1 || TR == -1){   //all arguments must be in correct range
         fprintf(stderr, "Argument parsing error\n");
         return 1;
