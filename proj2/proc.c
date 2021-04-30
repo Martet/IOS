@@ -128,6 +128,7 @@ int santa(sharedRes_t *shared, const int NR){
     print_log("%d: Santa: Christmas started\n", shared->count++);
     sem_post(&shared->mutex);
 
+    sem_post(&shared->santaDone_sem);
     sem_post(&shared->main_wait);
     return 0;
 }

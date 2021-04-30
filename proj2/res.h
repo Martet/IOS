@@ -14,6 +14,7 @@ typedef struct sharedRes{
     sem_t elfHelp_sem;
     sem_t reindHitch_sem;
     sem_t elfDone_sem;
+    sem_t santaDone_sem;
     FILE *file;
     unsigned int count;
     int reindeers;
